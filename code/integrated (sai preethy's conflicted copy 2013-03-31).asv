@@ -1,0 +1,105 @@
+%hand segmentation using skin detection and motion detection
+%snapshot1=imread('C:\Users\Sony\Desktop\Image8.jpg');
+
+
+
+countreg=0;
+X=0;
+Y=0;
+zz=0;
+yy=0;
+
+X1=0;
+Y1=0;
+
+Xmax=0;
+Ymax=0;
+
+figure(1)
+[allfing alldeg fingdis tnp arr background]=singlehandtraining();
+
+disp('Starting Video Device');
+vid=videoinput('winvideo',1,'YUY2_320x240');
+triggerconfig(vid,'manual');
+start(vid);
+starttime=tic;
+loc=[-1 -1];
+u11=0;
+flaag=0;
+
+for m1=1:20
+    %clearvars -except background vid m1 zz yy X Y X1 Y1 Xmax Ymax u11 flaag;
+     snapshot1=ycbcr2rgb(getsnapshot(vid));
+ snap=snapshot1;   
+    snapshot1=imfilter(snapshot1,fspecial('average',[5,5]));
+    snapshot1=imadjust(snapshot1,[],[0.1,1]);
+    set(0,'currentfigure',1);
+ %   figure(m1),imshow(snapshot1);
+str=['C:\Users\sys\Desktop\integrated\snapshot1',num2str(m1),'.jpg'];   
+imwrite(snapshot1,str,'jpg');
+snapshot1=segmentation(snapshot1,m1,snap,background);  %segmentation call
+
+     figure(10),imshow(snapshot1);
+hold on;
+
+
+Ima=rgb2gray(snapshot1);
+th=graythresh(Ima);
+bw=im2bw(Ima,th);
+%imshow(bw);
+bz=bwlabel(bw);
+
+b11=regionprops(bz,'all');
+if(~isempty(b11))
+len=length(b11);
+%areas=[b11.Area];
+%[maxArea largestBlobIndex]=max(areas);
+i2=0;
+for i2=1:len
+x1=b11(i2).BoundingBox(1);
+y1=b11(i2).BoundingBox(2);
+x2=b11(i2).BoundingBox(3);
+y2=b11(i2).BoundingBox(4);
+rectangle('Position',[x1,y1,x2,y2],'Edgecolor','r');
+end
+hold off;
+if(len==1)
+    countreg1=countre1+1;
+end
+
+    
+    
+    %{
+    if ( flaag==1)
+ if(m1==1)
+    if(len==2)
+     flaag=1;
+    end
+    end 
+%}
+if(len==1)
+    if(flaag==1)
+        Ic=imcrop(Ima,[x1 y1 x2 y2]);
+        disp(m1);
+        twohand(Ic,m1); %two hand call
+    end
+    if(flaag==0)
+        disp('singlehand');%singlehand(bw);%enter single hand code after segmentation
+        singlehand(allfing,alldeg,fingdis,tnp,arr);
+    end
+end
+if(len==2)
+     flaag=1;
+ end
+end
+end
+stop(vid);
+
+
+
+    
+    
+
+
+    
+    
